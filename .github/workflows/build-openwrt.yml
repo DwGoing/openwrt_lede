@@ -13,21 +13,24 @@ name: Build OpenWrt
 on:
   workflow_dispatch:
     inputs:
-      upload_bin: 
-        description: '上传bin目录'
+      custom_opratition:
+        description: "自定义操作"
         required: false
-        default: 'false'
-      upload_release: 
-        description: '上传release'
+        default: "custom_opratition.sh"
+      upload_bin:
+        description: "上传bin目录"
         required: false
-        default: 'false'
+        default: "false"
+      upload_release:
+        description: "上传release"
+        required: false
+        default: "false"
 
 env:
   REPO_URL: https://github.com/DwGoing/openwrt
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .config
-  AFTER_UPDATE_FEEDS_SH: after-update-feeds.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_BIN_DIR: github.event.inputs.upload_bin
   UPLOAD_RELEASE: github.event.inputs.upload_release
@@ -67,13 +70,11 @@ jobs:
       - name: Install feeds
         run: cd openwrt && ./scripts/feeds install -a
 
-      - name: Load custom opratiton
+      - name: Load custom files
         run: |
           [ -e files ] && mv files openwrt/files
           [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-          chmod +x $AFTER_UPDATE_FEEDS_SH
-          cd openwrt
-          $GITHUB_WORKSPACE/$AFTER_UPDATE_FEEDS_SH
+          [ -e github.event.inputs.custom_opratition ] && chmod +x github.event.inputs.custom_opratition && cd openwrt && $GITHUB_WORKSPACE/github.event.inputs.custom_opratition
 
       - name: Download package
         id: package
